@@ -21,7 +21,7 @@ const Card = (props) => {
     <View
       style={[styles.cardConatiner, props.type === "main" ? "" : styles.small]}
     >
-      {/* <Image style={styles.foodimage} source={props.source || imgSrc}></Image>
+      <Image style={styles.foodimage} source={props.source || imgSrc}></Image>
       <Text style={styles.mealInfo}>{props.meal || "meal"}</Text>
       <View style={styles.foodInfo}>
         <Text>{props.food || "food"}</Text>
@@ -31,7 +31,7 @@ const Card = (props) => {
       <View style={styles.foodratio}>
         <Text style={{ fontSize: 8 }}> 탄수화물:단백질:지방 </Text>
         <View style={styles.foodratiobar}></View>
-      </View> */}
+      </View>
     </View>
   );
 };
@@ -56,8 +56,8 @@ const styles = StyleSheet.create({
     width: 231,
     height: 173,
     backgroundColor: "#000000",
-    borderTopEndRadius: 8,
-    borderTopStartRadius: 8,
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
   },
 
   carbohydrate: {

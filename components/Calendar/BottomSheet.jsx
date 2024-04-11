@@ -20,6 +20,7 @@ const BottomSheet = (props) => {
   const dummy = [
     { meal: "점심", food: "김치찌개", kcal: "600" },
     { meal: "점심", food: "김치찌개" },
+    { meal: "점심", food: "김치찌개" },
   ];
 
   useEffect(() => {
@@ -71,8 +72,8 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     backgroundColor: "#ffffff", // 배경색
-    paddingHorizontal: 20, // 좌우 padding
-    paddingVertical: 10, // 상하 padding
+    // paddingHorizontal: 20, // 좌우 padding
+    // paddingVertical: 10, // 상하 padding
     width: "100%",
   },
   modalView: {
