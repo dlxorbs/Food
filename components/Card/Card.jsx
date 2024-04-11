@@ -12,6 +12,7 @@ import {
   PanResponder,
   Image,
 } from "react-native";
+import { theme } from "../Theme";
 
 const Card = (props) => {
   const imgSrc = {
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
   },
   cardConatiner: {
     height: 300,
-    backgroundColor: "#F2F2f2",
+    backgroundColor: theme.colors.cardback,
     borderRadius: 8,
     shadowColor: "#000",
     shadowOffset: {
