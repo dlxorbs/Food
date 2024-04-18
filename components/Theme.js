@@ -7,9 +7,14 @@ export const theme = {
     textlight: "SpoqaLight",
   },
   colors: {
-    primary: "#007bff",
-    secondary: "#6c757d",
+    primary: "#5E96EA",
+    secondary: "#8785D2",
     cardback: "#F2F2f2",
-    // 기타 색상들
+
+    carbohydrate: "#8785D2",
+    fat: "#5E96EA",
+    protien: "#99D1E2",
+
+    white: "#ffffff",
   },
 };

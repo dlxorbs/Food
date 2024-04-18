@@ -62,13 +62,13 @@ const styles = StyleSheet.create({
   },
 
   carbohydrate: {
-    backgroundColor: "#8785D2",
+    backgroundColor: theme.colors.carbohydrate,
   },
   fat: {
-    backgroundColor: "#5E96EA",
+    backgroundColor: theme.colors.fat,
   },
   protien: {
-    backgroundColor: "#99D1E2",
+    backgroundColor: theme.colors.protien,
   },
 });
 

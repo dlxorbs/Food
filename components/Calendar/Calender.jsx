@@ -11,6 +11,7 @@ import {
   Button,
   Animated,
 } from "react-native";
+import datas from "../../assets/data/data.json";
 
 LocaleConfig.locales["ko"] = {
   monthNames: [
@@ -58,10 +59,22 @@ const Nutrition = (props) => {
   return (
     <View style={styles.nutritionContainer}>
       <View
-        style={[styles.nutrition, { width: 42 }, styles.carbohydrate]}
+        style={[
+          styles.nutrition,
+          { width: props.carbohydrateWidth },
+          styles.carbohydrate,
+        ]}
       ></View>
-      <View style={[styles.nutrition, { width: 42 }, styles.fat]}></View>
-      <View style={[styles.nutrition, { width: 42 }, styles.protien]}></View>
+      <View
+        style={[styles.nutrition, { width: props.fatWidth }, styles.fat]}
+      ></View>
+      <View
+        style={[
+          styles.nutrition,
+          { width: props.proteinWidth },
+          styles.protien,
+        ]}
+      ></View>
 
       <View style={styles.nutritionInfo}>
         <View style={[styles.box, styles.carbohydrate]}></View>
@@ -82,12 +95,10 @@ const Nutrition = (props) => {
 const MyCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [nutrition, setNutrition] = useState({
-    protein: "100%",
-    fat: "100%",
-    carbohydrate: "100%",
-  });
+  const [nutrition, setNutrition] = useState("");
+  const [data, setData] = useState(datas);
 
+  console.log(nutrition);
   const handleDayPress = (day) => {
     setSelectedDate(day.dateString);
     setModalVisible(true);
@@ -127,11 +138,19 @@ const MyCalendar = () => {
         }}
         // state는 상태를 나타내는 정보 오늘, disabled등등 , date는 날짜
         dayComponent={({ date, state }) => {
+          // 해당 날짜의 데이터를 찾기 위해 find 메서드 사용
+          const daydate = data.result || []; // data.result가 undefined인 경우 기본값으로 빈 배열 설정
+
+          const selectedDateData = daydate.find(
+            (item) => item.date === date.dateString
+          );
+          console.log(daydate);
           return (
             <TouchableOpacity
               onPress={() => {
                 setSelectedDate(date.dateString);
                 setModalVisible(true);
+                setNutrition(daydate); // 해당 날짜의 데이터 설정
               }}
             >
               <View
@@ -151,7 +170,7 @@ const MyCalendar = () => {
                     height: 24,
                     alignItems: "center",
                     backgroundColor:
-                      state === "today" ? "#CEE6EB" : "transparant",
+                      state === "today" ? "#CEE6EB" : "transparent",
                     marginBottom: 16,
                   }}
                 >
@@ -167,13 +186,16 @@ const MyCalendar = () => {
                     {date.day}
                   </Text>
                 </View>
-                {/* 영양소 리스트 넣기 */}
 
                 <Nutrition
-                  carboWidth={nutrition.carbohydrate}
-                  protienWidth={nutrition.protien}
-                  fatWidth={nutrition.fat}
-                ></Nutrition>
+                  carbohydrateWidth={
+                    selectedDateData ? selectedDateData.carbohydrate * 42 : 0
+                  }
+                  proteinWidth={
+                    selectedDateData ? selectedDateData.protein * 42 : 0
+                  }
+                  fatWidth={selectedDateData ? selectedDateData.fat * 42 : 0}
+                />
               </View>
             </TouchableOpacity>
           );

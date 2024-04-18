@@ -1,0 +1,43 @@
+{
+  "isSuccess": true,
+  "code": "COMMON200",
+  "message": "요청에 성공하였습니다.",
+  "result": [
+    {
+      "date": "2024-04-01",
+      "intakeCalories": 927,
+      "remainingCalories": 73,
+      "targetCalories": 1000,
+      "protein": 0.84,
+      "carbohydrate": 0.12,
+      "fat": 0.59
+    },
+    {
+      "date": "2024-04-02",
+      "intakeCalories": 1212,
+      "remainingCalories": -212,
+      "targetCalories": 1000,
+      "protein": 0.87,
+      "carbohydrate": 0.43,
+      "fat": 0.76
+    },
+    {
+      "date": "2024-05-01",
+      "intakeCalories": 1212,
+      "remainingCalories": -212,
+      "targetCalories": 1000,
+      "protein": 0.87,
+      "carbohydrate": 0.43,
+      "fat": 0.76
+    },
+    {
+      "date": "2024-05-02",
+      "intakeCalories": 1212,
+      "remainingCalories": -212,
+      "targetCalories": 1000,
+      "protein": 0.87,
+      "carbohydrate": 0.43,
+      "fat": 0.76
+    }
+  ]
+}
