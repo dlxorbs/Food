@@ -136,10 +136,10 @@ const MyCalendar = () => {
         headerContainer={{
           backgroundColor: "blue",
         }}
-        // state는 상태를 나타내는 정보 오늘, disabled등등 , date는 날짜
+        // state는 상태를 나타내는 정보 오늘, disabled , date는 날짜
         dayComponent={({ date, state }) => {
           // 해당 날짜의 데이터를 찾기 위해 find 메서드 사용
-          const daydate = data.result || []; // data.result가 undefined인 경우 기본값으로 빈 배열 설정
+          const daydate = data.result || [];
 
           const selectedDateData = daydate.find(
             (item) => item.date === date.dateString
@@ -150,7 +150,7 @@ const MyCalendar = () => {
               onPress={() => {
                 setSelectedDate(date.dateString);
                 setModalVisible(true);
-                setNutrition(daydate); // 해당 날짜의 데이터 설정
+                setNutrition(daydate);
               }}
             >
               <View
