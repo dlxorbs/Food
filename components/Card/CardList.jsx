@@ -13,16 +13,12 @@ import Card from "./Card";
 import AddCard from "./AddCard";
 import * as Font from "expo-font";
 import { theme } from "../Theme";
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
 
 const Container = styled.View`
   flex: 1;
-`;
-
-const PlaceholderCard = styled.View`
-  width: 230px;
-  height: 300px;
-  margin-horizontal: 10px;
-  background-color: #000;
 `;
 
 const Title = styled.Text`
@@ -47,7 +43,7 @@ const Header = (props) => {
 
 const cardWidth = 231;
 
-const Cardlist = ({ data }) => {
+const Cardlist = ({ data , Icons, Title}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
   const { height, width } = useWindowDimensions();
@@ -59,15 +55,15 @@ const Cardlist = ({ data }) => {
 
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 50 });
 
-  // AddCard 데이터 생성
-  const addCardData = [{ id: "addCard" }];
+  // // AddCard 데이터 생성
+  // const addCardData = [{ id: "addCard" }];
 
   // 데이터 배열에 AddCard를 추가
-  const updatedData = [...data, ...addCardData];
-  console.log(currentIndex);
+  const updatedData = [...data];
+
   return (
     <Container>
-      <Header Icons={"🍴"} Title={"식단"} />
+      <Header Icons={Icons || "🍴"} Title={Title} />
       <FlatList
         data={updatedData}
         horizontal
@@ -83,7 +79,7 @@ const Cardlist = ({ data }) => {
             ) : (
               <TouchableHighlight
                 activeOpacity={0.6}
-                underlayColor="#DDDDDD"
+                underlayColor="#DDDDDD60"
                 onPress={() => alert("Pressed!")}
               >
                 <Card
@@ -91,7 +87,7 @@ const Cardlist = ({ data }) => {
                     currentIndex === updatedData.indexOf(item) ? "main" : ""
                   }
                   source=""
-                  meal={item.meal}
+                  name={item.meal}
                   food={item.food}
                   kcal={item.kcal}
                 />

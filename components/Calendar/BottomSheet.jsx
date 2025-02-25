@@ -17,12 +17,21 @@ const BottomSheet = (props) => {
   const { modalVisible, setModalVisible } = props;
   const [showOverlay, setShowOverlay] = useState(false); // State to control overlay appearance
 
-  const dummy = [
+  const nendoroid = [
     { meal: "점심", food: "김치찌개", kcal: "600" },
     { meal: "점심", food: "김치찌개" },
     { meal: "점심", food: "김치찌개" },
   ];
-
+  const lookup = [
+    { meal: "점심", food: "김치찌개", kcal: "600" },
+    { meal: "점심", food: "김치찌개" },
+    { meal: "점심", food: "김치찌개" },
+  ];
+  const etc = [
+    { meal: "점심", food: "김치찌개", kcal: "600" },
+    { meal: "점심", food: "김치찌개" },
+    { meal: "점심", food: "김치찌개" },
+  ];
   useEffect(() => {
     // When modalVisible changes to true, set showOverlay to true after 300ms
     if (modalVisible) {
@@ -54,7 +63,11 @@ const BottomSheet = (props) => {
     >
       <Text style={styles.modalTitle}> {props.selectedDate}</Text>
       <ScrollView style={styles.scrollContainer}>
-        <Cardlist data={dummy} />
+        <Cardlist data={nendoroid} />
+
+        <Cardlist data={lookup} />
+
+        <Cardlist data={etc} />
       </ScrollView>
     </Modal>
   );

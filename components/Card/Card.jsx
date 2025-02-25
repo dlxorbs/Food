@@ -23,14 +23,14 @@ const Card = (props) => {
       style={[styles.cardConatiner, props.type === "main" ? "" : styles.small]}
     >
       <Image style={styles.foodimage} source={props.source || imgSrc}></Image>
-      <Text style={styles.mealInfo}>{props.meal || "meal"}</Text>
+      <Text style={styles.figureInfo}>{props.figureInfo || "figureInfo"}</Text>
       <View style={styles.foodInfo}>
         <Text>{props.food || "food"}</Text>
         <Text>{props.kcal || "kcal"}</Text>
       </View>
 
       <View style={styles.foodratio}>
-        <Text style={{ fontSize: 8 }}> 탄수화물:단백질:지방 </Text>
+        <Text style={{ fontSize: 8 }}> {props.MoreInformatino} </Text>
         <View style={styles.foodratiobar}></View>
       </View>
     </View>
@@ -61,13 +61,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 8,
   },
 
-  carbohydrate: {
+  nendorid: {
     backgroundColor: theme.colors.carbohydrate,
   },
-  fat: {
+  lookup: {
     backgroundColor: theme.colors.fat,
   },
-  protien: {
+  etc: {
     backgroundColor: theme.colors.protien,
   },
 });

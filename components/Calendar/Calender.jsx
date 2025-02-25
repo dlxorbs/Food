@@ -49,45 +49,51 @@ LocaleConfig.locales["ko"] = {
     "수요일",
     "목요일",
     "금요일",
-    "토용일",
+    "토요일",
   ],
   dayNamesShort: ["일", "월", "화", "수", "목", "금", "토"],
 };
 
 LocaleConfig.defaultLocale = "ko";
-const Nutrition = (props) => {
+const Schedule = (props) => {
   return (
-    <View style={styles.nutritionContainer}>
-      <View
-        style={[
-          styles.nutrition,
-          { width: props.carbohydrateWidth },
-          styles.carbohydrate,
-        ]}
-      ></View>
-      <View
-        style={[styles.nutrition, { width: props.fatWidth }, styles.fat]}
-      ></View>
-      <View
-        style={[
-          styles.nutrition,
-          { width: props.proteinWidth },
-          styles.protien,
-        ]}
-      ></View>
-
-      <View style={styles.nutritionInfo}>
-        <View style={[styles.box, styles.carbohydrate]}></View>
-        <Text style={styles.nutritionText}>탄수화물</Text>
+    <View style={styles.ScheduleContainer}>
+ <View style={styles.HeaderInfo}>
+      <View style={[
+                styles.nutrition,
+                {display: props.nendoroidvisibility},
+                styles.nendoroid,
+              ]}
+            />
+            <View
+              style={[
+                styles.nutrition,
+                styles.lookup,
+                {display: props.lookupvisibility},
+              ]}
+            />
+            <View
+              style={[
+                styles.nutrition, 
+                styles.etc,
+                {display: props.etcvisibility},
+              ]}
+            />
+      </View>
+<View style={{flex : 1}}>
+<View style={styles.nutritionInfo}>
+        <View style={[styles.box, styles.nendoroid]}></View>
+        <Text style={styles.nutritionText}>넨도로이드</Text>
       </View>
       <View style={styles.nutritionInfo}>
-        <View style={[styles.box, styles.protien]}></View>
-        <Text style={styles.nutritionText}>단백질</Text>
+        <View style={[styles.box, styles.lookup]}></View>
+        <Text style={styles.nutritionText}>룩업</Text>
       </View>
       <View style={styles.nutritionInfo}>
-        <View style={[styles.box, styles.fat]}></View>
-        <Text style={styles.nutritionText}>지방</Text>
+        <View style={[styles.box, styles.etc]}></View>
+        <Text style={styles.nutritionText}>기타</Text>
       </View>
+</View>
     </View>
   );
 };
@@ -118,10 +124,10 @@ const MyCalendar = () => {
           textDisabledColor: "#d9e1e8",
           dotColor: "#00adf5",
           selectedDotColor: "#ffffff",
-          arrowColor: "orange",
+          arrowColor: "#5E96EA",
           disabledArrowColor: "#d9e1e8",
-          monthTextColor: "blue",
-          indicatorColor: "blue",
+          monthTextColor: "#333333",
+          indicatorColor: "#333333",
           textDayFontWeight: "300",
           textMonthFontWeight: "bold",
           textDayHeaderFontWeight: "300",
@@ -134,7 +140,7 @@ const MyCalendar = () => {
           justifyContent: "center",
         }}
         headerContainer={{
-          backgroundColor: "blue",
+          backgroundColor: "#333333",
         }}
         // state는 상태를 나타내는 정보 오늘, disabled , date는 날짜
         dayComponent={({ date, state }) => {
@@ -158,7 +164,7 @@ const MyCalendar = () => {
                   alignItems: "center",
                   justifyContent: "spacebetween",
                   width: 50,
-                  height: 108,
+                  height: 100,
                   paddingRight: 4,
                   paddingLeft: 4,
                 }}
@@ -171,7 +177,7 @@ const MyCalendar = () => {
                     alignItems: "center",
                     backgroundColor:
                       state === "today" ? "#CEE6EB" : "transparent",
-                    marginBottom: 16,
+                    marginBottom: 8,
                   }}
                 >
                   <Text
@@ -179,7 +185,7 @@ const MyCalendar = () => {
                       textAlign: "center",
                       color: state === "disabled" ? "#999999" : "#333333",
                       flex: 1,
-                      height: 24,
+                      height: 16,
                       marginTop: 3,
                     }}
                   >
@@ -187,14 +193,14 @@ const MyCalendar = () => {
                   </Text>
                 </View>
 
-                <Nutrition
-                  carbohydrateWidth={
-                    selectedDateData ? selectedDateData.carbohydrate * 42 : 0
+                <Schedule
+                  nendoroidvisibility={
+                    selectedDateData?.nendoroid ? 'block': 'none'
                   }
-                  proteinWidth={
-                    selectedDateData ? selectedDateData.protein * 42 : 0
+                  lookupvisibility={
+                    selectedDateData?.lookup ? 'block': 'none'
                   }
-                  fatWidth={selectedDateData ? selectedDateData.fat * 42 : 0}
+                  etcvisibility={selectedDateData?.etc ? 'block': 'none'}
                 />
               </View>
             </TouchableOpacity>
@@ -227,20 +233,29 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff", // 배경색
     paddingHorizontal: 20, // 좌우 padding
     paddingVertical: 10, // 상하 padding
-
     width: "100%",
   },
-  nutritionContainer: {
-    height: 64,
+  ScheduleContainer: {
+    flex: 1,
+    maxHeight: 48,
     alignItems: "center",
     justifyContent: "space-between", // 수평 방향 정렬
     alignItems: "left",
     gap: 4,
   },
   nutrition: {
-    height: 6,
+    width:10,
+    height: 10,
     flexDirection: "column",
     borderRadius: 999,
+  },
+ HeaderInfo: {
+    flex: 1,
+    maxHeight: 10,
+    justifyContent:"center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
 
   nutritionInfo: {
@@ -254,16 +269,16 @@ const styles = StyleSheet.create({
     fontSize: 8,
   },
 
-  box: { width: 6, height: 6 },
+  box: { width: 6, height: 6, borderRadius:2 },
 
-  carbohydrate: {
-    backgroundColor: "#8785D2",
-  },
-  fat: {
+  nendoroid: {
     backgroundColor: "#5E96EA",
   },
-  protien: {
-    backgroundColor: "#99D1E2",
+  lookup: {
+    backgroundColor: "#FCD967",
+  },
+  etc: {
+    backgroundColor: "#FECCCD",
   },
 });
 
