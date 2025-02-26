@@ -1,5 +1,6 @@
 {
   "expo": {
+    "platforms": ["ios", "android", "web"],
     "name": "food",
     "slug": "food",
     "version": "1.0.0",
