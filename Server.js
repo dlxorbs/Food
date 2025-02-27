@@ -1,21 +1,72 @@
+// server.js (Node.js 서버)
+const express = require('express');
 const puppeteer = require('puppeteer');
-const axios = require('axios');
+const fetch = require('node-fetch');
 
-(async () => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
+const app = express();
+const port = 3000;
 
-  // API 호출하여 JSON 데이터 받아오기
-  const response = await axios.get('https://api.bunjang.co.kr/api/1/find_v2.json?q=%EB%84%A8%EB%8F%84%EB%A1%9C%EC%9D%B4%EB%93%9C&order=score&page=0&request_id=2025227001207&stat_device=w&n=100&stat_category_required=1&req_ref=search&version=5');
-  const data = response.data;
+// 텍스트 크롤링 API
+app.get('/fetch-text', async (req, res) => {
+  const url = req.query.url;
 
-  // 상품 이름과 가격 출력
-  data.forEach(item => {
-    console.log(`상품명: ${item.name}`);
-    console.log(`가격: ${item.price}`);
-    console.log(`이미지 URL: ${item.product_image}`);
-    console.log('-------------------------');
-  });
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
 
-  await browser.close();
-})();
+    // 텍스트 크롤링: 상품 이름, 가격 등 추출
+    const nameRegex = /<h2 class="c-title c-title--level8">([^<]+)<\/h2>/g;
+    const priceRegex = /<span class="c-price__main">([^<]+)<\/span>/g;
+
+    let match;
+    let productList = [];
+    while ((match = nameRegex.exec(html)) !== null) {
+      const priceMatch = priceRegex.exec(html);
+      productList.push({
+        name: match[1].trim(),
+        price: priceMatch ? priceMatch[1].trim() : "N/A",
+      });
+    }
+
+    if (productList.length > 0) {
+      res.json({ products: productList });
+    } else {
+      res.status(404).json({ error: 'No products found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error fetching data' });
+  }
+});
+
+// 이미지 크롤링 API
+app.get('/scrape-images', async (req, res) => {
+  const url = req.query.url;
+
+  try {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.goto(url);
+
+    // 이미지 URL 크롤링
+    const imageUrls = await page.evaluate(() => {
+      const images = document.querySelectorAll('figure.b-product-item__image img');
+      return Array.from(images).map(img => `https://www.goodsmile.com${img.src}`);
+    });
+
+    await browser.close();
+
+    if (imageUrls.length > 0) {
+      res.json({ imageUrls });
+    } else {
+      res.status(404).json({ error: 'No images found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error fetching images' });
+  }
+});
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
