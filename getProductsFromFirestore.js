@@ -5,8 +5,8 @@ import { collection, getDocs, orderBy, query } from 'firebase/firestore';
 
 export const getProductsFromFirestore = async () => {
     try {
-        // Firestore에서 Nendoroid 컬렉션 참조
-        const q = query(collection(db, "Nendoroid"), orderBy("number"));
+        // Firestore에서 Nendoroid 컬렉션 참조, 'number' 필드를 기준으로 내림차순 정렬
+        const q = query(collection(db, "Nendoroid"), orderBy("number", "desc"));
 
         // 데이터를 가져오기
         const querySnapshot = await getDocs(q);

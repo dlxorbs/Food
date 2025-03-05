@@ -1,132 +1,95 @@
-import React from "react";
-import {
-    View,
-    Text,
-    Modal,
-    StyleSheet,
-    Animated,
-    TouchableOpacity,
-    Dimensions,
-} from "react-native";
-import { Picker } from "@react-native-picker/picker";
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, Dimensions, TextInput, TouchableOpacity } from 'react-native';
+import BottomSheet from '@gorhom/bottom-sheet';
+import Slider from '@react-native-community/slider'; // 기본 Slider 임포트
 
-const { height } = Dimensions.get("window");
+const { height } = Dimensions.get('window');
 
-const Filter = ({ modalVisible, setModalVisible, pickerItems, title, selectedValue, setSelectedValue }) => {
-    const [translateY] = React.useState(new Animated.Value(height)); // 바텀시트의 초기 위치 (화면 밖으로 시작)
+const Filter = ({
+    modalVisible,
+    setModalVisible,
+    title,
+}) => {
+    const [priceRange, setPriceRange] = useState({ low: 0, high: 5000 }); // 슬라이더의 기본값 (최소 0, 최대 5000)
+    const [category, setCategory] = useState(''); // 카테고리 입력 필드
 
-    // 애니메이션을 통해 바텀 시트를 화면 위로 올리기
-    const openBottomSheet = () => {
-        Animated.spring(translateY, {
-            toValue: 0, // 화면 아래로부터 0만큼 위로
-            useNativeDriver: true,
-        }).start();
-    };
-
-    // 애니메이션을 통해 바텀 시트를 화면 밖으로 내리기
-    const closeBottomSheet = () => {
-        Animated.spring(translateY, {
-            toValue: height, // 화면 아래로 내리기
-            useNativeDriver: true,
-        }).start(() => setModalVisible(false));
-    };
-
-    // 모달이 열릴 때 바텀 시트를 올리도록 설정
-    React.useEffect(() => {
-        if (modalVisible) {
-            openBottomSheet();
-        } else {
-            closeBottomSheet();
-        }
-    }, [modalVisible]);
+    // BottomSheet의 초기 위치 설정
+    const snapPoints = useMemo(() => ['25%', '50%', '90%'], []);
 
     return (
-        <Modal
-            animationType="none" // 기본 애니메이션 제거
-            visible={modalVisible}
-            transparent={true}
-            onRequestClose={() => setModalVisible(false)}
+        <BottomSheet
+            index={0}
+            snapPoints={snapPoints}
+            onChange={(index) => {
+                if (index === -1) {
+                    setModalVisible(false);
+                }
+            }}
+            enablePanDownToClose={true}
         >
-            <View style={styles.overlay}>
-                <Animated.View
-                    style={[styles.bottomSheet, { transform: [{ translateY }] }]}
-                >
-                    <View style={styles.content}>
-                        <View style={styles.contentWrapper}>
-                            <Text style={styles.title}>{title}</Text>
-                            {/* 확인 버튼 */}
-                            <TouchableOpacity
-                                style={styles.button}
-                                onPress={() => setModalVisible(false)}
-                            >
-                                <Text style={styles.buttonText}>확인</Text>
-                            </TouchableOpacity>
-                        </View>
+            <View style={styles.container}>
+                <Text style={styles.title}>{title}</Text>
 
-                        {/* 피커 컴포넌트 */}
-                        <Picker
-                            selectedValue={selectedValue}
-                            onValueChange={(itemValue) => setSelectedValue(itemValue)}  // 선택된 값 업데이트
-                            style={styles.picker}
-                        >
-                            {pickerItems?.map((item, index) => (
-                                <Picker.Item
-                                    key={index}
-                                    label={item.label}
-                                    value={item.value}
-                                />
-                            ))}
-                        </Picker>
-                    </View>
-                </Animated.View>
+                {/* 가격 범위 슬라이더 */}
+                <Text>가격 범위: {priceRange.low} ~ {priceRange.high}</Text>
+                <Slider
+                    style={styles.slider}
+                    minimumValue={0}
+                    maximumValue={5000}
+                    step={100}
+                    value={priceRange.low}
+                    onValueChange={(value) => setPriceRange({ ...priceRange, low: value })}
+                    minimumTrackTintColor="#1fb28a"
+                    maximumTrackTintColor="#d3d3d3"
+                    thumbTintColor="#1e663c"
+                />
+                <Slider
+                    style={styles.slider}
+                    minimumValue={0}
+                    maximumValue={5000}
+                    step={100}
+                    value={priceRange.high}
+                    onValueChange={(value) => setPriceRange({ ...priceRange, high: value })}
+                    minimumTrackTintColor="#1fb28a"
+                    maximumTrackTintColor="#d3d3d3"
+                    thumbTintColor="#1e663c"
+                />
+
+                {/* 카테고리 필터 */}
+                <Text>카테고리</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="카테고리 입력"
+                    value={category}
+                    onChangeText={setCategory}
+                />
             </View>
-        </Modal>
+        </BottomSheet>
     );
 };
 
 const styles = StyleSheet.create({
-    overlay: {
+    container: {
         flex: 1,
-        justifyContent: "flex-end",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)", // 배경 어두운 색
-    },
-    bottomSheet: {
-        width: "100%",
-        backgroundColor: "white",
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        justifyContent: 'flex-start',
         padding: 20,
-        paddingBottom: 50,
-        position: "absolute",
-        bottom: 0,
-        elevation: 5,
-    },
-    content: {
-        justifyContent: 'space-between',
-    },
-    contentWrapper: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        backgroundColor: 'white',
     },
     title: {
         fontSize: 18,
-        fontWeight: "bold",
+        fontWeight: 'bold',
     },
-    picker: {
-        width: "100%",
-        height: 150,
+    slider: {
+        width: '100%',
+        height: 40,
+        marginTop: 10,
     },
-    button: {
-        color: "#007bff",
-        paddingVertical: 10,
-        paddingHorizontal: 20,
+    input: {
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 10,
         borderRadius: 5,
-    },
-    buttonText: {
-        color: "#007bff",
-        fontSize: 16,
+        marginTop: 20,
     },
 });
 

@@ -1,12 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from "react-native";
+import Filter from "../components/BottomSheet/Filter";
 import { saveProductToFirestore } from '../saveProductToFirestore'; // Firestore 저장 함수 import
 import { getProductsFromFirestore } from '../getProductsFromFirestore'; // Firestore에서 제품을 가져오는 함수 import
-
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import {
+  BottomSheetModal,
+  BottomSheetView,
+  BottomSheetModalProvider,
+} from '@gorhom/bottom-sheet';
 const HomeScreen = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [modalVisible, setModalVisible] = useState(false);
+  const [minPrice, setMinPrice] = useState(0); // 최소 가격
+  const [maxPrice, setMaxPrice] = useState(5000); // 최대 가격
 
   // 특수 기호를 기준으로 문자열을 자르는 함수
   const sanitizeName = (name) => {
@@ -75,7 +85,8 @@ const HomeScreen = () => {
 
       // 크롤링이 끝나면 Firestore에서 데이터를 불러와서 상태 업데이트
       const firestoreData = await getProductsFromFirestore();
-      setProducts(firestoreData); // 가져온 데이터로 화면 업데이트
+      const sortedData = firestoreData.sort((a, b) => b.number - a.number); // 번호 기준 내림차순 정렬
+      setProducts(sortedData);
 
     } catch (error) {
       setError("데이터 로딩 실패");
@@ -99,11 +110,27 @@ const HomeScreen = () => {
     fetchData();
   }, []); // 컴포넌트가 처음 마운트될 때만 실행
 
+  //  바텀시트 실행
+  const bottomSheetModalRef = useRef(null);
+
+  // callbacks
+  const handlePresentModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.present(); // 모달 열기
+  }, []);
+
+  const handleSheetChanges = useCallback((index) => {
+    console.log('handleSheetChanges', index);
+    if (index === -1) {
+      setModalVisible(false); // 모달이 닫혔을 때
+    }
+  }, [setModalVisible]);
+
   return (
     <View style={{ flex: 1, marginTop: 20 }}>
       <TouchableOpacity style={styles.filterButton} onPress={fetchAndSaveCrawledData}>
         <Text style={styles.filterButtonText}>Refresh</Text>
       </TouchableOpacity>
+
 
       {loading ? (
         <Text>Loading...</Text>
@@ -129,11 +156,36 @@ const HomeScreen = () => {
           )}
         />
       )}
+
+      {/* "가격 필터" 버튼 클릭 시 BottomSheet 열기 */}
+
+      <GestureHandlerRootView style={styles.container}>
+        <BottomSheetModalProvider>
+          {/* 버튼을 클릭하면 BottomSheetModal이 열립니다. */}
+          <TouchableOpacity style={styles.filterButton} onPress={handlePresentModalPress}>
+            <Text style={styles.filterButtonText}>Filter</Text>
+          </TouchableOpacity>
+
+          {/* BottomSheetModal 설정 */}
+          <BottomSheetModal
+            ref={bottomSheetModalRef}
+            onChange={handleSheetChanges} // 상태 변경 시 콜백
+            snapPoints={['25%', '50%', '90%']} // BottomSheet 높이 설정
+          >
+            <BottomSheetView style={styles.contentContainer}>
+              {/* BottomSheet 안에 표시될 내용 */}
+              <Text>필터가 적용된 화면입니다 🎉</Text>
+            </BottomSheetView>
+          </BottomSheetModal>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+
   filterButton: {
     backgroundColor: "#5E96EA",
     paddingVertical: 12,
@@ -152,6 +204,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     marginRight: 20,
     marginLeft: 20
+  },
+  container: {
+    // position: 'absolute',
+    zIndex: 999,
   },
   productCard: {
     flex: 1,
