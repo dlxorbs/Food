@@ -3,6 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image } from "react
 import Filter from "../components/BottomSheet/Filter";
 import { saveProductToFirestore } from '../saveProductToFirestore'; // Firestore 저장 함수 import
 import { getProductsFromFirestore } from '../getProductsFromFirestore'; // Firestore에서 제품을 가져오는 함수 import
+import { checkIfProductExists } from '../functions/checkIfProductExists';
+import { updateProductInFirestore } from '../functions/updateProductInFirestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   BottomSheetModal,
@@ -25,7 +28,27 @@ const HomeScreen = () => {
     return sanitized;
   };
 
-  // 크롤링하여 데이터를 Firestore에 저장하는 함수
+  // 로컬 스토리지에 데이터 저장
+  const saveDataToLocalStorage = async (data) => {
+    try {
+      await AsyncStorage.setItem('productList', JSON.stringify(data));
+      console.log('데이터가 로컬 스토리지에 저장되었습니다.');
+    } catch (error) {
+      console.error('로컬 스토리지에 저장 실패:', error);
+    }
+  };
+
+  const getDataFromLocalStorage = async () => {
+    try {
+      const data = await AsyncStorage.getItem('productList');
+      return data != null ? JSON.parse(data) : []; // 데이터가 있으면 파싱해서 반환, 없으면 빈 배열 반환
+    } catch (error) {
+      console.error('로컬 스토리지에서 데이터 가져오기 실패:', error);
+      return [];
+    }
+  };
+
+
   const fetchAndSaveCrawledData = async () => {
     setLoading(true);
     setError(null);
@@ -34,56 +57,54 @@ const HomeScreen = () => {
       let offset = 0;
       const productList = [];
 
+      // Firestore에서 기존 제품 데이터 가져오기
+      const existingProducts = await getProductsFromFirestore();
+      const existingProductNumbers = new Set(existingProducts.map(product => product.number)); // 기존 제품 번호들
+
       // 2400개의 데이터를 가져오기 위한 반복
       while (offset <= 2460) {
+        console.log(`Moving to next batch with offset: ${offset}`);
+
         const url = `https://www.goodsmile.com/en/search/list?filter=%7B%22search_keyword%22%3A%22%22%2C%22search_over18%22%3Afalse%2C%22search_category%22%3A%5B15%2C15%5D%2C%22search_maker%22%3A%5B%5D%2C%22search_title%22%3A%5B%5D%2C%22search_status%22%3A%220%22%2C%22release_date_from%22%3A%22%22%2C%22release_date_to%22%3A%22%22%2C%22search_bonus%22%3Afalse%2C%22search_exclusive%22%3Afalse%2C%22search_sale%22%3Afalse%2C%22search_sales_origin%22%3Afalse%2C%22tag%22%3A%5B%5D%7D&orderBy=1&limit=60&offset=${offset}&couponId=null&searchIndex=-1`;
 
         const response = await fetch(url);
         const html = await response.text(); // HTML 가져오기
+        console.log(`Fetched HTML for offset ${offset}`);
 
-        const nameRegex = /<h2 class="c-title c-title--level8">([^<]+)<\/h2>/g;
-        const numberRegex = /<figcaption class="b-product-item__image__caption">([^<]+)<\/figcaption>/g;
+        // 크롤링한 데이터 처리
+        const productRegex = /<figure class="b-product-item__image">.*?<img src="([^"]+)"[^>]*>.*?<figcaption class="b-product-item__image__caption">([^<]+)<\/figcaption>.*?<h2 class="c-title c-title--level8">([^<]+)<\/h2>.*?<span class="c-price__main">([^<]+)<\/span>/gs;
 
         let match;
+        while ((match = productRegex.exec(html)) !== null) {
+          const imageUrl = `https://www.goodsmile.com${match[1].trim()}`;
+          const productNumber = match[2].trim();
+          const sanitizedProductName = match[3].trim();
+          const productPrice = match[4].trim();
 
-        while ((match = nameRegex.exec(html)) !== null) {
-          let productName = match[1].trim();
-          const sanitizedProductName = sanitizeName(productName); // 특수 기호 앞까지 자른 이름
+          // 이미 존재하는 제품인지 확인
+          if (existingProductNumbers.has(productNumber)) {
+            console.log(`제품 ${productNumber}은 이미 Firestore에 존재합니다.`);
+          } else {
+            // 새로운 제품만 Firestore에 저장
+            const product = {
+              name: sanitizedProductName,
+              number: productNumber,
+              image: imageUrl,
+              price: productPrice
+            };
 
-          const numberMatch = numberRegex.exec(html);
-          const productNumber = numberMatch ? numberMatch[1].trim() : null;
-
-          if (!productNumber) {
-            continue; // number가 없으면 저장하지 않음
+            await saveProductToFirestore(product); // 새로운 데이터만 저장
+            productList.push(product); // 화면에 표시할 데이터
+            existingProductNumbers.add(productNumber); // 새로운 제품 번호를 추가
+            console.log(`새로운 제품 ${productNumber} 저장됨`);
           }
-
-          // 이미지 찾기
-          const imgRegex = new RegExp(`<img src="([^"]+)" alt="${sanitizedProductName}"`, "g");
-          const imgMatch = imgRegex.exec(html);
-          const imageUrl = imgMatch ? `https://www.goodsmile.com${imgMatch[1]}` : "N/A";
-
-          // 가격 데이터가 없다면 "N/A"로 처리
-          const priceRegex = /<span class="c-price__main">([^<]+)<\/span>/g;
-          const priceMatch = priceRegex.exec(html);
-          const productPrice = priceMatch ? priceMatch[1].trim() : "N/A";
-
-          // 제품 데이터 저장
-          const product = {
-            name: sanitizedProductName,
-            number: productNumber,
-            image: imageUrl,
-            price: productPrice
-          };
-
-          // Firestore에 저장
-          await saveProductToFirestore(product);
-          productList.push(product); // 화면에 표시할 데이터
         }
 
         offset += 60; // 다음 배치로 넘어감
       }
 
-      // 크롤링이 끝나면 Firestore에서 데이터를 불러와서 상태 업데이트
+      // 모든 데이터 크롤링이 끝난 후 최신 데이터로 상태 업데이트
+      await saveDataToLocalStorage(productList); // 로컬 스토리지에 최신 데이터 저장
       const firestoreData = await getProductsFromFirestore();
       const sortedData = firestoreData.sort((a, b) => b.number - a.number); // 번호 기준 내림차순 정렬
       setProducts(sortedData);
@@ -99,11 +120,16 @@ const HomeScreen = () => {
   // 화면이 처음 렌더링될 때 Firestore에서 데이터를 가져오는 useEffect
   useEffect(() => {
     const fetchData = async () => {
-      try {
+      // 먼저 로컬 스토리지에서 데이터 가져오기
+      const localData = await getDataFromLocalStorage();
+      if (localData.length > 0) {
+        setProducts(localData); // 로컬 데이터가 있으면 그것으로 화면 업데이트
+      } else {
+        // 로컬 스토리지에 데이터가 없으면 Firestore에서 데이터 가져오기
         const firestoreData = await getProductsFromFirestore();
-        setProducts(firestoreData); // 가져온 데이터로 화면 업데이트
-      } catch (error) {
-        setError("데이터를 불러오는 데 실패했습니다.");
+        // Firestore에서 가져온 데이터를 로컬 스토리지에 저장
+        await saveDataToLocalStorage(firestoreData);
+        setProducts(firestoreData); // Firestore 데이터로 화면 업데이트
       }
     };
 
@@ -133,7 +159,7 @@ const HomeScreen = () => {
 
 
       {loading ? (
-        <Text>Loading...</Text>
+        <Text style={{ flex: 1 }}>Loading...</Text>
       ) : error ? (
         <Text style={{ color: 'red' }}>{error}</Text>
       ) : (
@@ -149,7 +175,7 @@ const HomeScreen = () => {
                 <Image source={{ uri: item.imgsrc }} style={styles.productImage} />
               </View>
               <View style={styles.productCardContainer}>
-                <Text style={styles.productName}>{item.name}</Text>
+                <Text style={styles.productName} numberOfLines={2} ellipsizeMode="tail">{item.name}</Text>
                 <Text style={styles.productPrice}>{item.price}</Text>
               </View>
             </View>
